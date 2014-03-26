@@ -1,15 +1,18 @@
 # Create the model object
 import nengo
 import libardrone
+from numpy import genfromtxt
+
+path = genfromtxt('path.csv', delimiter=',')
 
 # Quad position input.
 def position_input(t):
-    if t < 1:
-        return [0, 0, 1]
-    elif t < 2:
-        return [0, 1, 0]
-    else:
-        return [1, 0, 0]
+    for index, point in enumerate(path):
+        if t >= min(path[index - 1][3], 0) and t < point[3]:
+            return point[:-1]
+
+    # If we're at the end, stay at the last point.
+    return path[-1][:-1]
 
 model = nengo.Model('Quad Test')
 
