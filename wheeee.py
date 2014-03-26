@@ -2,33 +2,30 @@
 import nengo
 import libardrone
 
-model = nengo.Model('Addition')
+# Quad position input.
+def position_input(t):
+    if t < 1:
+        return [0, 0, 1]
+    elif t < 2:
+        return [0, 1, 0]
+    else:
+        return [1, 0, 0]
 
-# Create 3 ensembles each containing 100 leaky integrate-and-fire neurons
-A = nengo.Ensemble(nengo.LIF(100), dimensions=1)
-B = nengo.Ensemble(nengo.LIF(100), dimensions=1)
-C = nengo.Ensemble(nengo.LIF(100), dimensions=1)
+model = nengo.Model('Quad Test')
 
-# Create input nodes representing constant values
-input_a = nengo.Node(output=0.5)
-input_b = nengo.Node(output=0.3)
-
-# Connect the input nodes to the appropriate ensembles
+# Create input nodes representing the input and store it in an ensemble.
+input_a = nengo.Node(output=position_input)
+A = nengo.Ensemble(nengo.LIF(100), dimensions=3)
 nengo.Connection(input_a, A)
-nengo.Connection(input_b, B)
-
-# Connect input ensembles A and B to output ensemble C
-nengo.Connection(A, C)
-nengo.Connection(B, C)
 
 # Set up probes for the output data we'll want to look at.
 input_a_probe = nengo.Probe(input_a, 'output')
-input_b_probe = nengo.Probe(input_b, 'output')
 A_probe = nengo.Probe(A, 'decoded_output', filter=0.01)
-B_probe = nengo.Probe(B, 'decoded_output', filter=0.01)
-C_probe = nengo.Probe(C, 'decoded_output', filter=0.01)
 
 # Create the simulator
 sim = nengo.Simulator(model)
-# Run it for 5 seconds
-sim.run(5)
+
+while True:
+    sim.step()
+    A_data = sim.data(A_probe)
+    print A_data[-1]
