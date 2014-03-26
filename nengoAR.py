@@ -14,6 +14,11 @@ def position_input(t):
     # If we're at the end, stay at the last point.
     return path[-1][:-1]
 
+# Connect to the quad and take off.
+# drone = libardrone.ARDrone()
+# drone.takeoff()
+
+# Build our neural model.
 model = nengo.Model('Quad Test')
 
 # Create input nodes representing the input and store it in an ensemble.
@@ -30,5 +35,6 @@ sim = nengo.Simulator(model)
 
 while True:
     sim.step()
-    A_data = sim.data(A_probe)
-    print A_data[-1]
+    position_data = sim.data(A_probe)
+    print position_data[-1][0], position_data[-1][1], position_data[-1][2]
+    # drone.at(drone.at_pcmd, True, position_data[-1][0], position_data[-1][1], position_data[-1][2], 0)
