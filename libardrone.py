@@ -130,6 +130,13 @@ class ARDrone(object):
         """
         self.speed = speed
 
+    def manual(self, m1, m2, m3, m4):
+        """Manual flight mode.
+
+        Manually-controlling each motor.
+        """
+        self.at(at_pwm, m1, m2, m3, m4)
+
     def at(self, cmd, *args, **kwargs):
         """Wrapper for the low level at commands.
 
@@ -203,7 +210,7 @@ def at_pcmd(seq, progressive, lr, fb, vv, va):
     rb -- front-back tilt: float [-1..1] negative: forwards, positive:
         backwards
     vv -- vertical speed: float [-1..1] negative: go down, positive: rise
-    va -- angular speed: float [-1..1] negative: spin left, positive: spin 
+    va -- angular speed: float [-1..1] negative: spin left, positive: spin
         right
 
     The above float values are a percentage of the maximum speed.
@@ -258,13 +265,12 @@ def at_pwm(seq, m1, m2, m3, m4):
 
     Parameters:
     seq -- sequence number
-    m1 -- front left command
-    m2 -- fright right command
-    m3 -- back right command
-    m4 -- back left command
+    m1 -- Integer: front left rotor speed (0 - 500)
+    m2 -- Integer: fright right command (0 - 500)
+    m3 -- Integer: back right command (0 - 500)
+    m4 -- Integer: back left command (0 - 500)
     """
-    # FIXME: what type do mx have?
-    pass
+    at("PWM", seq, [int(m1), int(m2), int(m3), int(m4)])
 
 def at_led(seq, anim, f, d):
     """
@@ -387,7 +393,7 @@ if __name__ == "__main__":
     import termios
     import fcntl
     import os
-    
+
     fd = sys.stdin.fileno()
 
     oldterm = termios.tcgetattr(fd)
@@ -440,4 +446,3 @@ if __name__ == "__main__":
         termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
         fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
         drone.halt()
-
