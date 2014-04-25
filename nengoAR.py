@@ -13,8 +13,8 @@ VELOCITY_SCALING = 0.05
 # too fast in one direction, it gets more unstable.
 TURN_SCALING = 0.001
 
-# A filter for the output signal values.
-FILTER = 0.2
+POSITION_FILTER = 0.2 # A filter for the position signal values.
+ENGINE_FILTER = 0.03 # A filter for the engine/trajectory signal values.
 
 MAX_SPEED = 500; # Constant defined from the quadcopter itself.
 
@@ -82,7 +82,6 @@ def printtrajectory(time, value):
     return value
 
 tau = 0.1
-tau_centre = 1.0
 def integrator(x):
     return tau*x - x
 
@@ -102,29 +101,29 @@ print_current = nengo.Node(printcurrent, size_in=3)
 print_trajectory = nengo.Node(printtrajectory, size_in=3)
 
 desired_position = nengo.Ensemble(neurons=100, dimensions=3, radius=10)
-current_position = nengo.Ensemble(neurons=1000, dimensions=3, radius=10)
+current_position = nengo.Ensemble(neurons=100, dimensions=3, radius=10)
 trajectory_difference_holder = nengo.Ensemble(neurons=200, dimensions=6, radius=10)
 trajectory = nengo.Ensemble(neurons=300, dimensions=3, radius=10)
 engine_power = nengo.Ensemble(neurons=500, dimensions=4, radius=500)
 
 # Store the other values in neurons.
-nengo.Connection(path_input, desired_position, filter=FILTER)
-nengo.Connection(desired_position, print_desired, filter=FILTER)
+nengo.Connection(path_input, desired_position, filter=POSITION_FILTER)
+nengo.Connection(desired_position, print_desired, filter=POSITION_FILTER)
 
 # Integrate the velocity to get the current position.
-nengo.Connection(velocity_input, current_position, filter=FILTER)
-nengo.Connection(current_position, current_position, function=integrator, filter=FILTER)
-nengo.Connection(current_position, print_current, filter=FILTER)
+nengo.Connection(velocity_input, current_position, filter=POSITION_FILTER)
+nengo.Connection(current_position, current_position, function=integrator, filter=POSITION_FILTER)
+nengo.Connection(current_position, print_current, filter=POSITION_FILTER)
 
 # Trajectory is the difference between the desired and current position.
-nengo.Connection(desired_position, trajectory_difference_holder, transform=[[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]], filter=FILTER)
-nengo.Connection(current_position, trajectory_difference_holder, transform=[[0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], filter=FILTER)
-nengo.Connection(trajectory_difference_holder, trajectory, function=difference, filter=FILTER)
-nengo.Connection(trajectory, print_trajectory, filter=FILTER)
+nengo.Connection(desired_position, trajectory_difference_holder, transform=[[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0]], filter=POSITION_FILTER)
+nengo.Connection(current_position, trajectory_difference_holder, transform=[[0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], filter=POSITION_FILTER)
+nengo.Connection(trajectory_difference_holder, trajectory, function=difference, filter=ENGINE_FILTER)
+nengo.Connection(trajectory, print_trajectory, filter=ENGINE_FILTER)
 
 # Now translate the desired trajectory into engine power.
-nengo.Connection(trajectory, engine_power, function=power, filter=FILTER)
-nengo.Connection(engine_power, motor_output, filter=FILTER)
+nengo.Connection(trajectory, engine_power, function=power, filter=ENGINE_FILTER)
+nengo.Connection(engine_power, motor_output, filter=ENGINE_FILTER)
 
 # Create our simulator
 sim = nengo.Simulator(model)

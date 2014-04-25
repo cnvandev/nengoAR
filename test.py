@@ -5,8 +5,7 @@ import time
 drone = libardrone.ARDrone()
 drone.reset()
 
-drone.manual(250, 250, 250, 250)
-time.sleep(3)
+while True:
+  print drone.navdata
 
-drone.manual(0, 0, 0, 0)
 drone.halt()

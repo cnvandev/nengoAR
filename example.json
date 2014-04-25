@@ -1,0 +1,14 @@
+{
+   0:{
+      'phi':3,
+      'psi':3,
+      'num_frames':383,
+      'battery':50,
+      'altitude':221,
+      'ctrl_state':131072,
+      'vx':0.0,
+      'vy':0.0,
+      'vz':0.0,
+      'theta':7
+   }
+}
